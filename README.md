@@ -1,2 +1,2 @@
 # robot-planning
-Project repository for beginner level robot planning projects.
+Project repository for robot planning projects, a part of course `ENPM661- Robot Planning`.
