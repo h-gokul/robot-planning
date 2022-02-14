@@ -1,3 +1,4 @@
+# Number-puzzle
 
 - To run individual test cases, run this command:
 
