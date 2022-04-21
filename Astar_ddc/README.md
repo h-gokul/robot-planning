@@ -4,7 +4,7 @@
 ##### Gokul Hari - 117430646
 ##### Aswath Muthuselvam - 
 # Results
-[!video](./assets/simulation_video.gif)
+! [video](./assets/simulation_video.gif)
 
 
 # File structure.
