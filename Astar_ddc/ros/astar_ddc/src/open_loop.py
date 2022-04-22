@@ -115,30 +115,30 @@ def open_loop_publisher(robot, path):
     rospy.sleep(3.)
 
     vel_pub = VelocityPublisher()
-    # path_pub = PathPublisher()
+    path_pub = PathPublisher()
     rospy.init_node('publisher', anonymous=True)
     listener = tf.TransformListener()
 
     velocity_list, pose_list = retrieve_commands(robot, path)
-    # pose_list_msgs = path_pub.update_msg(pose_list)
+    pose_list_msgs = path_pub.update_msg(pose_list)
      
 
     rate = rospy.Rate(1)
     while not rospy.is_shutdown():                    
-        # try:
+        try:
 
-        #     (trans,rot) = listener.lookupTransform('/odom', '/base_footprint', rospy.Time(0))
-        #     current_pose = poseMessage(trans, rot)
+            (trans,rot) = listener.lookupTransform('/odom', '/base_footprint', rospy.Time(0))
+            current_pose = poseMessage(trans, rot)
             
-        #     dx, dy, min_dist = closestPoint(current_pose, pose_list)
-        #     #print(min_dist)
+            dx, dy, min_dist = closestPoint(current_pose, pose_list)
+            #print(min_dist)
 
-        # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        #     print("No tf available between map and baselink......................")
-        #     rospy.sleep(1.)
-        #     continue
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            print("No tf available between map and baselink......................")
+            rospy.sleep(1.)
+            continue
 
-        # path_pub.publish(pose_list_msgs)
+        path_pub.publish(pose_list_msgs)
         # continue
     
         move = [0,0] if len(velocity_list) == 0 else velocity_list.pop(0)
@@ -146,5 +146,5 @@ def open_loop_publisher(robot, path):
         rospy.loginfo(msg_str)
         rospy.loginfo(move)
 
-        vel_pub.publish(move, 0, len(velocity_list) > 0)
+        vel_pub.publish(move, min_dist, len(velocity_list) > 0)
                        

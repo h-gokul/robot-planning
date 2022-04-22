@@ -9,12 +9,15 @@ import numpy as np
 import heapq
 from Astar_ddc import Astar_DDC
 from arena import Node, Robot, Graph
-from utils import velocities, gazebo2map
+from utils import velocities, gazebo2map, save_data, load_data
+
 import sys
 from open_loop import open_loop_publisher         
 from closed_loop import closed_loop_publisher         
+import os
 if __name__ == '__main__':
     try:
+
         START = [gazebo2map(float(sys.argv[1])), gazebo2map(float(sys.argv[2])), gazebo2map(float(sys.argv[3]))]
         GOAL = [gazebo2map(float(sys.argv[4])), gazebo2map(float(sys.argv[5])), 0]
         clearance = int(sys.argv[6])
@@ -37,8 +40,9 @@ if __name__ == '__main__':
             exit()
         rospy.sleep(3.)
 
-        path.reverse()        
-        
+        path.reverse()     
+
+        print(len(path))
         # open_loop_publisher(robot, path)
         closed_loop_publisher(robot, path)            
 

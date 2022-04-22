@@ -18,6 +18,19 @@ def deleteFolder(path):
     if os.path.exists(path):
         shutil.rmtree(path)
 
+import pickle
+
+def load_data(path="./tmp/paths.dat"):
+    try:
+        with open(path) as f:
+            x = pickle.load(f)
+    except:
+        x = []
+    return x
+
+def save_data(data, path="./tmp/paths.dat"):
+    with open(path, "wb") as f:
+        pickle.dump(data, f)
 
 def remove_file(file):
     try:
@@ -65,5 +78,5 @@ def velocities(robot, UL, UR):
 
 def gazebo2map(x, rev=False):
     if rev:
-        return (x-50)/10
-    return int(10*x +50)  
+        return (x-50.0)/10.0
+    return int(10.0*x +50.0)  
