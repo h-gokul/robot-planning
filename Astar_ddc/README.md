@@ -1,8 +1,8 @@
 # AStar- with non holonomic constraints.
 
-### Authors: 
-##### Gokul Hari - 117430646
-##### Aswath Muthuselvam - 
+## Authors: 
+### Gokul Hari - 117430646
+### Aswath Muthuselvam - 
 # Results
 ![video](./assets/simulation_video.gif)
 
