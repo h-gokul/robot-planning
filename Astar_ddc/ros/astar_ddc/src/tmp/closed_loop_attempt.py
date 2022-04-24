@@ -7,8 +7,6 @@ from utils import gazebo2map
 
 class GoToPose():
     def __init__(self):
-        # client = actionlib.SimpleActionClient('/leader/move_base', MoveBaseAction)
-        # client.wait_for_server()
 
         self.goal_sent = False
         rospy.on_shutdown(self.shutdown)
@@ -19,14 +17,14 @@ class GoToPose():
     def goto(self, pos, quat):
         self.goal_sent = True
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.header.frame_id = 'base_link'
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose = Pose(Point(pos['x'], pos['y'], 0.000),
                                      Quaternion(quat['r1'], quat['r2'], quat['r3'], quat['r4']))
 
         self.move_base.send_goal(goal)
         success = self.move_base.wait_for_result(rospy.Duration(10))
-        print("is sucess", success)
+        print("is success", success)
         state = self.move_base.get_state()
         result = False
         if success and state == GoalStatus.SUCCEEDED:
@@ -61,3 +59,6 @@ def closed_loop_publisher(robot, path):
         # Sleep to give the last log messages time to be sent
         rospy.sleep(1)
     
+
+
+

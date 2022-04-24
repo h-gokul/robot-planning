@@ -1,41 +1,79 @@
+#!/usr/bin/env python
 
 import rospy
-import tf
 from std_msgs.msg import String
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped, Pose, Twist
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Twist
+import csv
+import tf
 
 import numpy as np
-import heapq
-from utils import velocities, gazebo2map
 import sys
 
-class PathPublisher:
-    def __init__(self):
-        self.pub = rospy.Publisher('path', Path, queue_size=10)
 
-    def publish(self, path_msgs):
-        self.pub.publish(path_msgs)
-        rospy.sleep(1.0)
+def pathMessages(waypoints):
 
-    def update_msg(self, path_points):
-        path = Path()
-        path.header.frame_id = "/map"    
-        for point in path_points:
-            pose = PoseStamped()
-            pose.pose.position.x = float(point[0])
-            pose.pose.position.y = float(point[1])
-            pose.pose.position.z = 0
-
-            pose.pose.orientation.x = 0
-            pose.pose.orientation.y = 0
-            pose.pose.orientation.z = 0
-            pose.pose.orientation.w = 1
-            
-            path.poses.append(pose)
-
-        return path
+    path = Path()
+    path.header.frame_id = "/map"
     
+    for point in waypoints:
+
+        pose = PoseStamped()
+        pose.pose.position.x = float(point[0])
+        pose.pose.position.y = float(point[1])
+        pose.pose.position.z = 0
+
+        pose.pose.orientation.x = 0
+        pose.pose.orientation.y = 0
+        pose.pose.orientation.z = 0
+        pose.pose.orientation.w = 1
+        
+        path.poses.append(pose)
+
+    return path
+ 
+
+
+def velocities(robot, action):
+    r, L, dt = robot.radius, robot.wheelDistance, robot.dt 
+    wL = float(action[0])
+    wR = float(action[1])
+    v = (r/2)* (wL + wR )
+    w = (r/L) * (wL - wR )
+    return w, v
+
+def velocityMessages(robot, action):
+    vel = Twist()
+    lin_vel, ang_vel = velocities(robot, action)
+
+    vel.linear.x = lin_vel
+    vel.linear.y = 0
+    vel.linear.z = 0
+
+    vel.angular.x = 0
+    vel.angular.y = 0
+    vel.angular.z = ang_vel
+
+    return vel
+
+
+def closestPoint(_pose, waypoints):
+    current_point = np.array([_pose.position.x, _pose.position.y]).reshape(-1,2)
+    waypoints = np.array(waypoints, dtype = float).reshape(-1, 2)
+
+    difference = waypoints - current_point
+    ssd = np.sum(np.square(difference), axis = 1) 
+    idx = np.argmin(ssd)
+    min_distance = np.sqrt(ssd[idx])
+    delx, dely = difference[idx, 0], difference[idx, 1]
+
+    min_distance = min_distance if (delx < 0) else -min_distance
+    dx, dy = waypoints[idx, 0], waypoints[idx, 1] 
+    
+    return dx, dy, min_distance 
+
 def poseMessage(trans, rot):
     _pose = Pose()
     _pose.position.x = trans[0]
@@ -48,103 +86,48 @@ def poseMessage(trans, rot):
     _pose.orientation.w = rot[3]
 
     return _pose
-
-
-def closestPoint(_pose, path_points):
-    current_point = np.array([_pose.position.x, _pose.position.y]).reshape(-1,2)
-    path_points = np.array(path_points, dtype = float).reshape(-1, 2)
-
-    difference = path_points - current_point
-    ssd = np.sum(np.square(difference), axis = 1) 
-    idx = np.argmin(ssd)
-    min_dist = np.sqrt(ssd[idx])
-    delx, dely = difference[idx, 0], difference[idx, 1]
-
-    min_dist = min_dist if (delx < 0) else -min_dist
-    dx, dy = path_points[idx, 0], path_points[idx, 1] 
     
-    return dx, dy, min_dist 
+def updateAngVel(vel_old, d, k  = 1.7):
+    vel_new = vel_old    
+    vel_new.angular.z = vel_old.angular.z + k * d
+    return vel_new
 
-
-def retrieve_commands(robot, path):
-    velocity_list, pose_list = [], []
-    for index in range(len(path) - 1):
-        node = path[index]
-        pose_list.append([node.i,node.j])
-
-        action = node.valid_actions[path[index + 1]]
-        linvel, angvel = velocities(robot, action[0], action[1]) 
-        velocity_list.append([linvel, angvel])
-    return velocity_list, pose_list
-
-def updateOmega(vel, d, k  = 0.95):
-    new_vel = vel
-    omega = vel.angular.z
-    omega_new = omega + k * d
-    new_vel.angular.z = omega_new
-    return new_vel
-
-
-class VelocityPublisher:
-
-    def __init__(self):
-        self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
-
-    def publish(self, action, min_dist, omega_update=False):
-        vel = Twist()
-        vel.linear.x = action[0]
-        vel.linear.y = 0
-        vel.linear.z = 0
-
-        vel.angular.x = 0
-        vel.angular.y = 0
-        vel.angular.z = action[1]
-
-        # if (abs(min_dist) > 0.1 and omega_update):
-        #     vel =  updateOmega(vel, min_dist)
-
-        self.pub.publish(vel)
-        rospy.sleep(4.0)
-
-
-def open_loop_publisher(robot, path):
-    """
-    takes the path of nodes from start to goal and calls the publishers to navigate robot . 
-    """
-    
+def open_loop_publisher(robot, path_info):
+    actions, waypoints = path_info
     rospy.sleep(3.)
-
-    vel_pub = VelocityPublisher()
-    path_pub = PathPublisher()
+    path_publisher = rospy.Publisher('path', Path, queue_size=10)
+    vel_publisher = rospy.Publisher('cmd_vel', Twist, queue_size=10)
     rospy.init_node('publisher', anonymous=True)
+
     listener = tf.TransformListener()
 
-    velocity_list, pose_list = retrieve_commands(robot, path)
-    pose_list_msgs = path_pub.update_msg(pose_list)
-     
+    rospy.sleep(3.)
+
+    path = pathMessages(waypoints)
 
     rate = rospy.Rate(1)
-    while not rospy.is_shutdown():                    
-        try:
 
+    while not rospy.is_shutdown():
+
+        try:
             (trans,rot) = listener.lookupTransform('/odom', '/base_footprint', rospy.Time(0))
             current_pose = poseMessage(trans, rot)
+            _, _, distance = closestPoint(current_pose, waypoints)
             
-            dx, dy, min_dist = closestPoint(current_pose, pose_list)
-            #print(min_dist)
 
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            print("No tf available between map and baselink......................")
+            print("transformation unavailable between map and baselink ...")
             rospy.sleep(1.)
             continue
 
-        path_pub.publish(pose_list_msgs)
-        # continue
-    
-        move = [0,0] if len(velocity_list) == 0 else velocity_list.pop(0)
-        msg_str = "Publishing vel"
-        rospy.loginfo(msg_str)
-        rospy.loginfo(move)
+        action = [0,0] if (len(actions) == 0) else actions.pop(0)
+        vel = velocityMessages(robot, action)
 
-        vel_pub.publish(move, min_dist, len(velocity_list) > 0)
-                       
+        #update omega
+        if (abs(distance) > 0.1 and len(actions) > 0):
+           vel =  updateAngVel(vel, distance)
+
+        path_publisher.publish(path)
+        vel_publisher.publish(vel)
+
+        rate.sleep()

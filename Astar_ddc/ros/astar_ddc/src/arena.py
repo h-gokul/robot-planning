@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
-HEIGHT, WIDTH = 100, 100
+HEIGHT, WIDTH = 10.0, 10.0
 
 WHITE = (220, 220, 220)
 GREEN = (0, 255, 0)
@@ -18,7 +18,7 @@ class Circle:
         self.x, self.y = x,y
         self.radius = radius
         self.clearance = clearance
-        # print(f"Circle at {x, y} with radius {radius}")
+        print("Circle at "+ str(x)+','+str(y)+" with radius " +str(radius))
 
     def isInside(self, x,y):     
         return  (x - self.x) **2 + (y- self.y)**2  < (self.radius+self.clearance)**2
@@ -39,7 +39,7 @@ class Rectangle:
         self.xlim = (x-w/2, x+w/2)
         self.ylim = (y- h/2, y+h/2)
 
-        # print(f"Rectangle origin at {x, y} with width {w} and height {h}")
+        print("Rectangle origin at "+ str(x)+','+str(y)+" with width " +str(w) + " and height "+str(h) )
 
     def isInside(self, x,y):     
         return (self.xlim[0]-self.clearance  < x < self.xlim[1]+self.clearance ) \
@@ -59,12 +59,13 @@ class Graph:
     def __init__(self, clearence):
         self.clearance = clearence
         self.obstacleList = self.createObstacles()
+        self.h, self.w = HEIGHT, WIDTH        
 
     def createObstacles(self):
-        circObstacle1 = Circle(20, 20, 10, self.clearance) 
-        circObstacle2 = Circle(20, HEIGHT-20, 10, self.clearance) 
-        rectObstacle1 = Rectangle(50, 50, 25, 15, self.clearance) 
-        rectObstacle2 = Rectangle(80, 30, 15, 20, self.clearance) 
+        circObstacle1 = Circle(2.0, 2.0, 1.0, self.clearance) 
+        circObstacle2 = Circle(2.0, HEIGHT-2.0, 1.0, self.clearance) 
+        rectObstacle1 = Rectangle(5.0, 5.0, 2.5, 1.5, self.clearance) 
+        rectObstacle2 = Rectangle(8.0, 3.0, 1.5, 2.0, self.clearance) 
 
         obstacleList=[circObstacle1, circObstacle2, rectObstacle1, rectObstacle2]
         return obstacleList
@@ -81,9 +82,9 @@ class Graph:
         return state
 
     def Cspace(self):
-        grid = np.ones((HEIGHT, WIDTH),np.float32)
-        for i in range(HEIGHT):
-            for j in range(WIDTH):
+        grid = np.ones((int(HEIGHT), int(WIDTH)),np.float32)
+        for i in range(int(HEIGHT)):
+            for j in range(int(WIDTH)):
                 grid[i][j] = 1.0 if self.insideObstacle(i, j) else 0
         return grid
 
@@ -98,19 +99,19 @@ class Graph:
     def validityCheck(self, start, end):        
         # Checking is start and end are in obstancle.
         isvalid = True
-        if not self.isInsideArena(start.i, start.j):
+        if not self.isInsideArena(start[0], start[1]):
             isvalid=False
             print("Starting point is outside the arena!")
 
-        if not self.isInsideArena(end.i, end.j):
+        if not self.isInsideArena(end[0], end[1]):
             isvalid=False
             print("Ending point is outside the arena!")
 
-        if self.insideObstacle(start.i, start.j):
+        if self.insideObstacle(start[0], start[1]):
             isvalid=False
             print("Starting point is inside the obstacle!")
 
-        if self.insideObstacle(end.i, end.j):
+        if self.insideObstacle(end[0], end[1]):
             isvalid=False
             print("Ending point is inside the obstacle!")
                     
@@ -134,7 +135,7 @@ class Node:
     """
     A node is simply a location on a map. 
     class members: 
-        - the 2D pose of the node: (i, j, theta), 
+        - state: the 2D pose of the node (i, j, theta), 
         - costs: (costToCome, costToGo) 
         - other nodes: neighbours, parent nodes
         - action set: valid_actions set
@@ -142,18 +143,39 @@ class Node:
         lesser than operator: check if the cost of node is lesser than the other 
     """
 
-    def __init__(self, i, j, goal_i, goal_j, theta):
-        self.i, self.j  = i, j
-        self.theta = theta
-        self.costToCome = 0.0
-        self.costToGo = 2.5*(math.sqrt((i - goal_i) ** 2 + (j - goal_j) ** 2))
-        self.cost = None
-        self.neighbours = {}
-        self.valid_actions = {}
-        self.parent = None
+    def __init__(self, state, parent, move, cost, path_array): 
 
+        self.state = state
+        self.parent = parent
+        self.move = move
+        self.cost = cost
+        self.pathArray = path_array
+        
     def __lt__(self, other):
-        return self.cost < other.cost
+        return self.state < other.state
+
+    def parent_state(self):
+        if self.parent is None:
+            return None
+        return self.parent.state
+
+    def backtrack(self):
+        """
+        Backtracking from the finishing node to the start node.
+        Input: Node after reaching target
+        """        
+        moves, nodes = [], []
+        current_node = self
+        while(current_node.move is not None):
+            moves.append(current_node.move)
+            nodes.append(current_node)
+            current_node = current_node.parent
+        nodes.append(current_node)
+        
+        moves.reverse()
+        nodes.reverse()
+        return moves, nodes
+
 
 class Robot():
     """
@@ -163,5 +185,5 @@ class Robot():
         self.RPM1, self.RPM2 = rpm1, rpm2
         self.clearence =  clearance
 
-        self.radius, self.wheelDistance, self.dt = 0.033*10, 0.354*10, 0.1
-
+        self.radius, self.wheelDistance, self.dt = 0.038, 0.354, 0.1 
+        # 0.0033, 0.00354, 0.1

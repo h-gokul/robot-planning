@@ -169,7 +169,6 @@ catkin_install_python(PROGRAMS
   src/arena.py
   src/Astar_ddc.py
   src/open_loop.py
-  src/closed_loop.py
   src/publisher.py
   src/utils.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

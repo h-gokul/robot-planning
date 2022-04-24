@@ -2,8 +2,8 @@ import os
 import cv2
 import shutil
 from glob import glob
-
-# import imageio
+# from tqdm import tqdm
+import csv
 import numpy as np
 
 def string_to_int(input_str):
@@ -18,19 +18,6 @@ def deleteFolder(path):
     if os.path.exists(path):
         shutil.rmtree(path)
 
-import pickle
-
-def load_data(path="./tmp/paths.dat"):
-    try:
-        with open(path) as f:
-            x = pickle.load(f)
-    except:
-        x = []
-    return x
-
-def save_data(data, path="./tmp/paths.dat"):
-    with open(path, "wb") as f:
-        pickle.dump(data, f)
 
 def remove_file(file):
     try:
@@ -38,28 +25,25 @@ def remove_file(file):
     except OSError as e:
         print("Error: %s : %s" % (file, e.strerror))
 
-# def createMovie(path):
-#     image_folder = path
-#     video_name = 'simulation_video.mp4'
+def createMovie(path,video_name="simulation_video", fps = 10):
 
-#     images = sorted(glob("results/*.png"))
-#     frame = cv2.imread(os.path.join(images[0]))
-#     height, width, channels = frame.shape
-#     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-#     video = cv2.VideoWriter(video_name, fourcc, 30, (width,height))
-#     imgs = []
-#     for i in tqdm(range(len(images))):
-#         imgs.append(imageio.imread(images[i]))
-#         image = cv2.imread(images[i])
-#         if i==0:
-#             h, w, _ = image.shape
-#         video.write(image)
-
-#     for i in range(20):
-#         imgs.append(imageio.imread(images[len(images)-1]))
-#     imageio.mimsave('simulation_video.gif', imgs, fps=30)
-#     cv2.destroyAllWindows()
-#     video.release()
+    images = sorted(glob(path+"/*.png"))
+    frame = cv2.imread(os.path.join(images[0]))
+    height, width, channels = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video = cv2.VideoWriter(video_name+".mp4", fourcc, fps , (width,height))
+    imgs = []
+    for i in range(len(images)):
+        image = cv2.imread(images[i])
+        if i==0:
+            h, w, _ = image.shape
+        video.write(image)
+        # imgs.append(imageio.imread(images[i]))
+    # for i in range(20):
+    #     imgs.append(imageio.imread(images[len(images)-1]))
+    # imageio.mimsave(video_name+'gif', imgs, fps=fps )
+    cv2.destroyAllWindows()
+    video.release()
 
 
 def deg2rad(rot): 
@@ -67,16 +51,30 @@ def deg2rad(rot):
 
 def rad2deg(theta_new):
     theta_new = 180*theta_new/3.14    
-    theta_new = theta_new % 360 if theta_new > 0 else (theta_new + 360) % 360
+    if (theta_new >= 360): theta_new -= 360
+    if (theta_new <= -360): theta_new += 360
+    # theta_new = theta_new % 360 if theta_new > 0 else (theta_new + 360) % 360
     return theta_new
 
-def velocities(robot, UL, UR):
-    r, L = robot.radius, robot.wheelDistance
-    ang_vel = (r / L) * (UR - UL)
-    lin_vel = 0.5 * r * (UL + UR)
-    return lin_vel, ang_vel
+def half_round(x):
+    x = round(2*x)/2    
+    if x == 10 : x-=0.5
+    return x
+
 
 def gazebo2map(x, rev=False):
     if rev:
-        return (x-50.0)/10.0
-    return int(10.0*x +50.0)  
+        return (x-5.0)/1.0
+    return 1.0*x +5.0  
+
+
+def read_file(file_name):
+
+    rows= []
+    with open(file_name, 'r') as csvfile:
+        # creating a csv reader object
+        csvreader = csv.reader(csvfile)
+        for row in csvreader:
+            rows.append(row)
+
+    return rows
