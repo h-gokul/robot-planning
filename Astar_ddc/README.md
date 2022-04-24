@@ -10,7 +10,7 @@ Name: Gokul Hari
 - UID: 117430646
 - Section: 0301
 
-- Course: ENPM 661 - Planning for Autonomous Robots
+Github Link: /home/gokul/courses/ENPM661/robot-planning/Astar_ddc
 ```
 
 #  Part1: Visualization in Matplotlib 
