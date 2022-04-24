@@ -1,38 +1,39 @@
 # AStar- with non holonomic constraints.
 
-## Authors: 
-### Gokul Hari - 117430646
-### Aswath Muthuselvam - 
-# Results
+## Authors
+```
+Name: Aswath Muthuselvam
+- UID: 118286204
+- Section: 0201
+
+Name: Gokul Hari
+- UID: 117430646
+- Section: 0301
+
+- Course: ENPM 661 - Planning for Autonomous Robots
+```
+
+#  Part1: Visualization in Matplotlib 
+Run 
+```
+python3 Astar_ddc.py
+```
+
 ![video](./assets/simulation_video.gif)
 
 
-# File structure.
-```
-├── arena.py
-├── assets
-│   ├── simulation_video.gif
-│   ├── simulation_video.mp4
-│   └── test.py
-├── Astar_ddc.py
-├── README.md
-└── utils.py
-```
 
-# Part2
+# Part2:  Visualization in Gazebo.
 
-# ROS package.
-
+###  ROS package:
 Refer the folder `./ros` for the ros package `astar_ddc`. Paste the ros package in your src folder of catkin workspace.
 
 ### Dependancies. 
-We need turtle bot and navigation_msgs
-run the following 
+run the following, to setup the dependancies in the catkin workspace- `catkin_ws`.
 
 ```
 cd ~/ros_catkin_ws/src
 
-git clone https://github.com/ros-planning/navigation_msgs.git
 git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git
 git clone https://github.com/ROBOTIS-GIT/turtlebot3.git
 git clone https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
@@ -46,9 +47,45 @@ The following scripts are in the package's folder `astar_ddc/src`
 - `arena.py` 
 -  `utils.py` 
 - `open_loop.py` 
-- `closed_loop.py`
 
 The node `publisher.py` is used to call the Astar planner to make the plan and obtain the waypoints. 
-We have an `open loop publisher` that can blindly apply the actions to the model, we inferred that these results were not suitable.
-We also have a `closed loop publisher ` that can set the pose in each waypoint to be reached and  the model reaches it.
-This is done with the help of actionlib and move_base.
+We have an `open loop publisher` that can apply the actions to the turtlebot.
+
+To execute, run the command,
+```
+roslaunch astar_ddc environment.launch  
+```
+
+![video](./assets/530-990.gif)
+
+
+
+# Results:
+For part 1, refer simulation video, with start state(x, y, theta) (1,1,0)-(9,9,0)
+
+For part 2, refer the following videos.  
+```
+530-990.mp4
+680-990.mp4
+310-810.mp4
+```
+They are named `<start_state>-<goal_state>.mp4`
+
+## Future works
+We are also working on a `closed loop publisher ` that can set the pose in each waypoint to be reached and  the model reaches it.
+This is to be done with the help of actionlib and move_base.
+
+
+# File structure.
+```
+├── arena.py
+├── assets
+│   ├── simulation_video.gif
+│   ├── simulation_video.mp4
+│   ├── 530-990.mp4
+├── Astar_ddc.py
+├── README.md
+└── utils.py
+```
+
+
