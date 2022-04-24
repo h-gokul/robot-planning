@@ -249,8 +249,8 @@ class Astar_DDC(Graph):
 if __name__ == "__main__":
     Parser = argparse.ArgumentParser()
     # values are 10x to pass as integer strings and later convertedd within 0-10.0
-    Parser.add_argument('--init_state', default="1, 1, 0", help='initial state of the puzzle')
-    Parser.add_argument('--goal_state', default="9, 9, 0", help='goal state to be reached')
+    Parser.add_argument('--init_state', default="5, 2, 0", help='initial state of the puzzle')
+    Parser.add_argument('--goal_state', default="8, 8, 0", help='goal state to be reached')
     Parser.add_argument('--rpms', default="15, 10", help='robot wheel rpms')
     Parser.add_argument('--clr', default="0.1", help='clearence')
     args = Parser.parse_args()

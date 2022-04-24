@@ -19,10 +19,10 @@ Run
 python3 Astar_ddc.py
 ```
 
-![video](./assets/simulation_video.gif)
+![video](./assets/110-990.gif)
 
 
-
+---------------------------------------------------
 # Part2:  Visualization in Gazebo.
 
 ###  ROS package:
@@ -61,7 +61,12 @@ roslaunch astar_ddc environment.launch
 
 
 # Results:
-For part 1, refer simulation video, with start state(x, y, theta) (1,1,0)-(9,9,0)
+For part 1, refer the following videos.
+```
+110-990.mp4
+520-880.mp4
+310-810.mp4
+```
 
 For part 2, refer the following videos.  
 ```
@@ -69,7 +74,7 @@ For part 2, refer the following videos.
 680-990.mp4
 310-810.mp4
 ```
-They are named `<start_state>-<goal_state>.mp4`
+These videos are named `<start_state>-<goal_state>.mp4`, any state is given by (x,y, $\theta$)
 
 ## Future works
 We are also working on a `closed loop publisher ` that can set the pose in each waypoint to be reached and  the model reaches it.
