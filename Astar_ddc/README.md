@@ -85,9 +85,9 @@ This is to be done with the help of actionlib and move_base.
 ```
 ├── arena.py
 ├── assets
-│   ├── simulation_video.gif
-│   ├── simulation_video.mp4
-│   ├── 530-990.mp4
+│   ├── <visuals>.gif
+├── results
+│   ├── <results videos>.mp4
 ├── Astar_ddc.py
 ├── README.md
 └── utils.py
